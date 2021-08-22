@@ -25,7 +25,7 @@ function main() {
       height: 1em;
       display: inline-block;
     }
-    div[id^="hypothes.is_/"] .block-properties:not(.page-properties) { display: none; }
+    div[id^="hypothesis__/"] .block-properties:not(.page-properties) { display: none; }
   `)
 
   logseq.App.registerUIItem('toolbar', {

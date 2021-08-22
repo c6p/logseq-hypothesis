@@ -16,9 +16,18 @@ html, body {
   position: absolute;
   top: 3em;
   right: 0;
+  background-color: #ccc;
 }
 
 #form {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-areas:
+      'label input fetch'
+      'label input create'
+      'select select select';
+  grid-gap: .1em 1em;
+  padding: .1em;
 }
+select { grid-area: select; }
+#fetch { grid-area: fetch; }
+#create { grid-area: create; }
