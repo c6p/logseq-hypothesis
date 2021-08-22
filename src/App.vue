@@ -144,17 +144,22 @@ export default {
         }
         content += `\n:PROPERTIES:\n:hid: ${id}\n:updated: ${updated}\n:END:`;
 
-        return [id, { content, reference: references ? references[references.length-1] : undefined }]
+        return [id, { content, references }]
       }));
       // create tree
       let cleanup = [];
       for (const [id, block] of noteMap.entries()) {
-        let ref = noteMap.get(block.reference);
-        if (ref) {
-          if (!ref.children)
-            ref.children = [];
-          ref.children.push(block);
-          cleanup.push(id);
+        if (!block.references)
+          continue;
+        for (let i = block.references.length; i >= 0; i--) {
+          let ref = noteMap.get(block.references[i]);
+          if (ref) {
+            if (!ref.children)
+              ref.children = [];
+            ref.children.push(block);
+            cleanup.push(id);
+            break;
+          }
         }
       }
       // cleanup
