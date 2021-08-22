@@ -1,0 +1,24 @@
+html, body {
+  padding: 0;
+  margin: 0;
+}
+
+
+#wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+#hypothesis {
+  max-width: 100%;
+  position: absolute;
+  top: 3em;
+  right: 0;
+}
+
+#form {
+  display: grid;
+  grid-template-columns: auto auto;
+}
