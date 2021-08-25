@@ -1,11 +1,18 @@
 # Logseq Hypothes.is Plugin
-![hypothesis](https://user-images.githubusercontent.com/80478/130364459-fb595c8f-679a-4fcb-95dd-8f3d2853ceb1.jpg)
+![hypo](https://user-images.githubusercontent.com/80478/130854045-ac8c603f-0e07-4531-b195-c15833475052.jpg)
 
-Enter your [API token](https://hypothes.is/account/developer) and user address. `Fetch Updates` will fetch hypothesis notes.
+Enter your [API token](https://hypothes.is/account/developer) and user address. `Fetch Updates` will fetch new [hypothes.is](https://web.hypothes.is/) notes.
 
-Selecting an URI below and clicking `Create Selected Page` will gather annotations from Hypothes.is.
+Selecting an URI below and clicking `Get Selected Page` will gather notes and create a page.
 
-> **Note:** Early in development. Always creates new blocks, update will be implemented.
+Types of notes
+
+- 📌 **highlight**
+- 📝
+  - **annotation** - if under an highlight
+  - **reply** - if a child
+  - **page note** - if not a child
+- 🗑️ *deleted* note
 
 ### Running the Plugin
 
