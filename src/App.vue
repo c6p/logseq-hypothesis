@@ -7,7 +7,7 @@
         <button id="fetch" @click="fetchUpdates()">Fetch Updates</button>
         <label for="user">User:</label>
         <input id="user" placeholder="username@hypothes.is" :value="user" @change="setUser" />
-        <button id="create" @click="loadPageNotes(uri)">Create Selected Page</button>
+        <button id="create" @click="loadPageNotes(uri)">Get Selected Page</button>
         <select id="uri" v-model="uri"><option v-for="u in uris" :key="u">{{ u }}</option></select>
       </div>
     </div>
@@ -18,6 +18,7 @@
 import axios from 'axios';
 
 const delay = (t = 100) => new Promise(r => setTimeout(r, t))
+const flatten = array => array.reduce((a, {children = []}) => a.concat(flatten(children)), array);
 
 export default {
   name: 'App',
@@ -33,7 +34,7 @@ export default {
     }
   },
   computed: {
-    uris: function() { return [...new Set(this.annotations.map(a => a.uri))].reverse() }
+    uris: function() { return [...new Set((this.annotations || []).map(a => a.uri))].reverse() }
   },
   mounted () {
     logseq.once('ui:visible:changed', ({ visible }) => {
@@ -81,10 +82,11 @@ export default {
         for (const r of rows)
           annotationMap.set(r.id, r)
       }
-      // sort and save
-      const annotations = [...annotationMap.values()].sort((a,b) => b.updated < a.updated ? 1 : -1)
+      // sort by created then save
+      const annotations = [...annotationMap.values()].sort((a,b) => b.created < a.created ? 1 : -1)
+      await logseq.updateSettings({annotations: null}); // clear settings, BUG? else array size growing
+      await logseq.updateSettings({annotations}); // clear settings, BUG? else array size growing
       this.annotations = annotations;
-      await logseq.updateSettings({annotations});
     },
     async fetchAnnotations(search_after) {
       const res = await axios.get("https://api.hypothes.is/api/search", {
@@ -101,7 +103,8 @@ export default {
     getPageNotes(uri) {
       let notes = logseq.settings?.annotations?.filter(x => x.uri === uri);
       const title = notes[0]?.document.title;
-      let noteMap = new Map(notes.map(({ id, text, tags, target, updated, references }) => {
+      const hids = new Set(notes.map(({id})=>id));
+      let noteMap = new Map(notes.reduce((acc, { id, text, tags, target, updated, references }) => {
         const exact = target[0]?.selector?.filter(s => 'exact' in s)[0]?.exact;
         tags = tags.map(t => `#[[${t}]]`).join(" ");
         let content = "";
@@ -112,32 +115,36 @@ export default {
         } else {
           content += `📝 ${text} ${tags}`;
         }
-        content += `\n:PROPERTIES:\n:hid: ${id}\n:updated: ${updated}\n:END:`;
-
-        return [id, { content, references }]
-      }));
-      // create tree
-      let cleanup = [];
-      for (const [id, block] of noteMap.entries()) {
-        if (!block.references)
-          continue;
-        for (let i = block.references.length; i >= 0; i--) {
-          let ref = noteMap.get(block.references[i]);
-          if (ref) {
-            if (!ref.children)
-              ref.children = [];
-            ref.children.push(block);
-            cleanup.push(id);
-            break;
+        let properties = { hid: id, updated };
+        // add deleted references
+        for (const [i, r] of (references?.entries() ?? [])) {
+          if (!hids.has(r)) {
+            acc.push([r, { content: "🗑️", properties: {hid: r}, parent: references[i-1] }])
           }
         }
+        // add note
+        acc.push([id, { content, properties, parent: references ? references[references.length-1] : undefined }]);
+        return acc;
+      }, []));
+      // create tree
+      let after = null;
+      for (const block of noteMap.values()) {
+        const hid = block.parent;
+        if (!hid) {
+          if (after)
+            block.after = after
+          after = block.properties.hid;
+          continue;
+        }
+          let ref = noteMap.get(hid);
+          if (ref.children)
+            block.after = ref.children[ref.children.length-1].properties.hid;
+          else
+            ref.children = [];
+          ref.children.push(block);
       }
-      // cleanup
-      for (const id of cleanup)
-        noteMap.delete(id);
-      notes = [...noteMap.values()]
 
-      return {title, notes}
+      return {title, noteMap}
     },
     async loadPageNotes(uri) {
       if (!uri) return
@@ -150,13 +157,33 @@ export default {
         if (name !== page.originalName)
           throw new Error('page error');
 
-        const pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
+        let pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
         let targetBlock = pageBlocksTree[0];
-        targetBlock = await logseq.Editor.insertBlock(page.name, 'Loading annotations...', { isPageBlock: true })
+        if (targetBlock)
+          await logseq.Editor.updateBlock(targetBlock.uuid, 'Loading annotations...')
+        else {
+          targetBlock = await logseq.Editor.insertBlock(page.name, 'Loading annotations...', { isPageBlock: true })
+          pageBlocksTree = [targetBlock];
+        }
 
-        let {title, notes} = this.getPageNotes(uri);
+        let {title, noteMap} = this.getPageNotes(uri);
 
-        await logseq.Editor.insertBatchBlock(targetBlock.uuid, notes, { sibling: true });
+        const blocks = pageBlocksTree.slice(1);
+        const blockMap = new Map(flatten(blocks).map(b=>[b.properties.hid, b]));
+        const n_b = [...noteMap.values()].filter(n=>!blockMap.has(n.properties.hid));
+
+        for (const n of n_b) {
+          const {hid,updated} = n.properties;
+          const content = `${n.content}\n:PROPERTIES:\n:hid:${hid}\n:updated:${updated}\n:END:`;
+          const {parent, after} = n;
+          const source = blockMap.get(parent ?? after);
+          const block = await logseq.Editor.insertBlock(source?.uuid ?? page.name, content, {sibling: !parent, isPageBlock: !source});
+          blockMap.set(hid, block);
+        }
+        // TODO
+        // updated = map(notes, .updated) != map(blocks, .updated)
+        // updateBlock(updated, content) 
+        // delete set(blocks).difference(set(notes))
 
         await logseq.Editor.updateBlock(targetBlock.uuid, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`);
       } catch (e) {
