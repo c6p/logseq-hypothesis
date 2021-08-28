@@ -11,6 +11,7 @@
         <select id="uri" v-model="uri"><option v-for="u in uris" :key="u">{{ u }}</option></select>
       </div>
     </div>
+    <div v-if="loading" class="lds-ripple"><div></div><div></div></div>
   </div>  
 </template>
 
@@ -25,6 +26,7 @@ export default {
   components: {},
   data () {
     return {
+      loading: false,
       visible: false,
       left: 0,
       apiToken: "",
@@ -148,25 +150,25 @@ export default {
     },
     async loadPageNotes(uri) {
       if (!uri) return
-      const name = 'hypothesis__/' + uri.split('//')[1]
-      logseq.App.pushState('page', { name })
-      await delay(300)
+      this.loading = true;
 
       try {
+        const name = 'hypothesis__/' + uri.split('//')[1]
+        logseq.App.pushState('page', { name })
+        await delay(300)
+
         const page = await logseq.Editor.getCurrentPage();
         if (name !== page.originalName)
           throw new Error('page error');
 
+        let {title, noteMap} = this.getPageNotes(uri);
+
         let pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
         let targetBlock = pageBlocksTree[0];
-        if (targetBlock)
-          await logseq.Editor.updateBlock(targetBlock.uuid, 'Loading annotations...')
-        else {
-          targetBlock = await logseq.Editor.insertBlock(page.name, 'Loading annotations...', { isPageBlock: true })
+        if (!targetBlock) {
+          targetBlock = await logseq.Editor.insertBlock(page.name, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`, { isPageBlock: true });
           pageBlocksTree = [targetBlock];
         }
-
-        let {title, noteMap} = this.getPageNotes(uri);
 
         const blocks = pageBlocksTree.slice(1);
         const blockMap = new Map(flatten(blocks).map(b=>[b.properties.hid, b]));
@@ -186,9 +188,10 @@ export default {
         // delete set(blocks).difference(set(notes))
 
         await logseq.Editor.updateBlock(targetBlock.uuid, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`);
-      } catch (e) {
-        logseq.App.showMsg(e.toString(), 'warning');
+      } finally {
+        this.loading = false;
       }
+
     },
   },
 }
