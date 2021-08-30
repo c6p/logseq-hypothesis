@@ -16,5 +16,5 @@ Types of notes
 
 ### Running the Plugin
 
-- `npm install && npm run build` in terminal to install dependencies.
+- `pnpm install && pnpm run build` in terminal to install dependencies.
 - `Load unpacked plugin` in Logseq Desktop client.
