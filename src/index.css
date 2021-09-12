@@ -28,7 +28,7 @@ html, body {
   grid-gap: .1em 1em;
   padding: .1em;
 }
-select { grid-area: select; }
+select { grid-area: select; width: 100%; }
 #fetch { grid-area: fetch; }
 #create { grid-area: create; }
 
