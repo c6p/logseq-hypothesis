@@ -35,6 +35,8 @@ function main() {
       width: 1em;
       height: 1em;
       display: inline-block;
+      padding: 0.25rem;
+      margin: 0 0.25rem;
     }
     div[id^="hypothesis__/"] .block-properties:not(.page-properties) { display: none; 
   `);
