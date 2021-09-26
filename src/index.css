@@ -1,6 +1,10 @@
+
+@import 'vue-select/dist/vue-select.css';
+
 html, body {
   padding: 0;
   margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 
@@ -28,9 +32,28 @@ html, body {
   grid-gap: .1em 1em;
   padding: .1em;
 }
-select { grid-area: select; width: 100%; }
+
+.select .vs__search::placeholder,
+.select .vs__dropdown-toggle,
+.select .vs__dropdown-menu {
+  background: white;
+  color: black;
+  font-size: 85%;
+}
+.vs__selected-options { width: 0; }
+.vs__selected {
+  color: black;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 20px);
+  overflow: hidden;
+}
+
+.select { grid-area: select; }
 #fetch { grid-area: fetch; }
 #create { grid-area: create; }
+input { width: 30em; }
 
 #hypothesis iframe { width: 100%; height: 100%; }
 

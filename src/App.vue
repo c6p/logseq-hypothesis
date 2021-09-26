@@ -8,7 +8,7 @@
         <label for="user">User:</label>
         <input id="user" placeholder="username@hypothes.is" :value="user" @change="setUser" />
         <button id="create" @click="loadPageNotes(uri)">Get Selected Page</button>
-        <select id="uri" v-model="uri"><option v-for="u in uris" :key="u">{{ u }}</option></select>
+        <v-select ref="select" class="select" id="uri" v-model="uri" :options="uris" :clearable="false"></v-select>
       </div>
     </div>
     <div v-if="loading" class="lds-ripple"><div></div><div></div></div>
@@ -46,6 +46,9 @@ export default {
       this.apiToken = s.apiToken;
       this.user = s.user;
       this.annotations = s.annotations;
+    })
+    logseq.on('ui:visible:changed', ({ visible }) => {
+      visible && this.$nextTick(() => this.$refs.select.$el.focus() );
     })
   },
   methods: {

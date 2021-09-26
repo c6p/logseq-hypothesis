@@ -4,7 +4,7 @@
   "main": "dist/index.html",
   "author": "c6p",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite build --watch",
     "build": "vite build",
     "preinstall": "npx only-allow pnpm"
   },
@@ -12,13 +12,13 @@
   "dependencies": {
     "@logseq/libs": "^0.0.1-alpha.26",
     "axios": "^0.21.1",
-    "vue": "^3.2.6"
+    "vue": "^2.6.12",
+    "vue-select": "^3.13.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^1.6.0",
-    "@vue/compiler-sfc": "^3.2.6",
-    "typescript": "4.4.2",
-    "vite": "2.5.1"
+    "vite": "^2.0.2",
+    "vite-plugin-vue2": "^1.2.1",
+    "vue-template-compiler": "^2.6.12"
   },
   "logseq": {
     "id": "c6p_logseq-hypothesis",
