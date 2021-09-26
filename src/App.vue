@@ -96,6 +96,7 @@ export default {
       }
       // sort by created then save
       const annotations = [...annotationMap.values()].sort((a,b) => b.created < a.created ? 1 : -1)
+      annotations.forEach(a => ['user', 'user_info', 'permissions'].forEach(k => delete a[k]))
       await logseq.updateSettings({annotations: null}); // clear settings, BUG? else array size growing
       await logseq.updateSettings({annotations}); // clear settings, BUG? else array size growing
       this.annotations = annotations;
