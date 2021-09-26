@@ -7,11 +7,11 @@
         <button id="fetch" @click="fetchUpdates()">Fetch Updates</button>
         <label for="user">User:</label>
         <input id="user" placeholder="username@hypothes.is" :value="user" @change="setUser" />
-        <button id="create" @click="loadPageNotes(uri)">Get Selected Page</button>
+        <button id="create" @click="loadPage(uri)">Get Selected Page</button>
         <v-select ref="select" class="select" id="uri" v-model="uri" :options="uris" :clearable="false"></v-select>
       </div>
     </div>
-    <div v-if="loading" class="lds-ripple"><div></div><div></div></div>
+    <div v-if="fetching || updating" class="lds-ripple"><div></div><div></div></div>
   </div>  
 </template>
 
@@ -26,7 +26,9 @@ export default {
   components: {},
   data () {
     return {
-      loading: false,
+      lastFetch: + new Date(),
+      fetching: false,
+      updating: false,
       visible: false,
       left: 0,
       apiToken: "",
@@ -69,8 +71,13 @@ export default {
       logseq.updateSettings({user})
       this.user = user || "";
     },
-    fetchUpdates() { 
-      this.getAnnotations(logseq.settings);
+    async fetchUpdates() { 
+      if (this.fetching || (new Date() - this.lastFetch) < 10000)
+        return
+      this.fetching = true;
+      await this.getAnnotations(logseq.settings);
+      this.lastFetch = + new Date();
+      this.fetching = false;
     },
     async getAnnotations(s) {
       const a = s.annotations || [];
@@ -151,9 +158,9 @@ export default {
 
       return {title, noteMap}
     },
-    async loadPageNotes(uri) {
-      if (!uri) return
-      this.loading = true;
+    async loadPage(uri) {
+      if (!uri || this.updating) return
+      this.updating = true;
 
       try {
         const name = 'hypothesis__/' + uri.split('//')[1]
@@ -164,38 +171,51 @@ export default {
         if (name !== page.originalName)
           throw new Error('page error');
 
-        let {title, noteMap} = this.getPageNotes(uri);
-
-        let pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
-        let targetBlock = pageBlocksTree[0];
-        if (!targetBlock) {
-          targetBlock = await logseq.Editor.insertBlock(page.name, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`, { isPageBlock: true });
-          pageBlocksTree = [targetBlock];
-        }
-
-        const blocks = pageBlocksTree.slice(1);
-        const blockMap = new Map(flatten(blocks).map(b=>[b.properties.hid, b]));
-        const n_b = [...noteMap.values()].filter(n=>!blockMap.has(n.properties.hid));
-
-        for (const n of n_b) {
-          const {hid,updated} = n.properties;
-          const content = `${n.content}\n:PROPERTIES:\n:hid:${hid}\n:updated:${updated}\n:END:`;
-          const {parent, after} = n;
-          const source = blockMap.get(parent ?? after);
-          const block = await logseq.Editor.insertBlock(source?.uuid ?? page.name, content, {sibling: !parent, isPageBlock: !source});
-          blockMap.set(hid, block);
-        }
-        // TODO
-        // updated = map(notes, .updated) != map(blocks, .updated)
-        // updateBlock(updated, content) 
-        // delete set(blocks).difference(set(notes))
-
-        await logseq.Editor.updateBlock(targetBlock.uuid, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`);
+        await this.loadPageNotes(page, uri);
       } finally {
-        this.loading = false;
+        this.updating = false;
+      }
+    },
+    async loadPageNotes(page, uri) {
+      if (!page || !uri) return
+      let {title, noteMap} = this.getPageNotes(uri);
+
+      let pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
+      let targetBlock = pageBlocksTree[0];
+      if (!targetBlock) {
+        targetBlock = await logseq.Editor.insertBlock(page.name, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`, { isPageBlock: true });
+        pageBlocksTree = [targetBlock];
       }
 
+      const blocks = pageBlocksTree.slice(1);
+      const blockMap = new Map(flatten(blocks).map(b=>[b.properties.hid, b]));
+      const n_b = [...noteMap.values()].filter(n=>!blockMap.has(n.properties.hid));
+
+      for (const n of n_b) {
+        const {hid,updated} = n.properties;
+        const content = `${n.content}\n:PROPERTIES:\n:hid:${hid}\n:updated:${updated}\n:END:`;
+        const {parent, after} = n;
+        const source = blockMap.get(parent ?? after);
+        const block = await logseq.Editor.insertBlock(source?.uuid ?? page.name, content, {sibling: !parent, isPageBlock: !source});
+        blockMap.set(hid, block);
+      }
+
+      await logseq.Editor.updateBlock(targetBlock.uuid, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`);
     },
+    async updatePage() {
+        const page = await logseq.Editor.getCurrentPage();
+        if (!page.name.startsWith("hypothesis__/"))
+          return;
+        const pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
+        if (pageBlocksTree.length < 1)
+          return;
+        const re = /{:href\s"(.*?)"/
+        const m = pageBlocksTree[0].content.match(re)
+        if (!m || !m[1])
+          return;
+        await this.fetchUpdates();
+        await this.loadPageNotes(page, m[1])
+    }
   },
 }
 </script>

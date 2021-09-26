@@ -9,13 +9,16 @@ function main() {
   console.info(`#${pluginId}: MAIN`);
 
   Vue.component('v-select', vSelect)
-  new Vue({ el: '#app', render: h => h(App) });
+  const app = new Vue({ el: '#app', render: h => h(App) });
 
   function createModel() {
     return {
       show() {
         logseq.showMainUI();
       },
+      updatePage() {
+        app.$children[0].updatePage();
+      }
     };
   }
 
@@ -36,10 +39,16 @@ function main() {
     div[id^="hypothesis__/"] .block-properties:not(.page-properties) { display: none; 
   `);
 
-  logseq.provideUI({
+  logseq.App.registerUIItem('toolbar', {
     key: 'hypothesis',
-    path: "#head > div.ui-items-container",
     template: `<a data-on-click="show" title="Hypothes.is" class="opacity-40 hover:opacity-100">
+    <span class="icon-hypothesis"></span>
+    </a>`,
+  });
+
+  logseq.App.registerUIItem('pagebar', {
+    key: 'hypothesis-page',
+    template: `<a data-on-click="updatePage" title="Update current page" class="opacity-40 hover:opacity-100">
     <span class="icon-hypothesis"></span>
     </a>`,
   });
