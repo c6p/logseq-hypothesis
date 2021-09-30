@@ -107,7 +107,7 @@ export default {
         params: {
           limit: 200,
           order: 'asc',
-          user: `acct:${this.user}`,
+          user: `acct:${this.user}${!this.user.includes('@') ? '@hypothes.is' : '' }`,
           search_after,
         },
       });
