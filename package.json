@@ -1,6 +1,6 @@
 {
   "name": "logseq-hypothesis",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "main": "dist/index.html",
   "author": "c6p",
   "scripts": {
