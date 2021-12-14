@@ -46,6 +46,9 @@ function main() {
       line-height: 1;
       -webkit-font-smoothing: antialiased;
     }
+    .icon-hypothesis {
+      font-size: 20px;
+    }
     .icon-hypothesis:before {
       content: "\e900";
     }
