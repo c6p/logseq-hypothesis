@@ -115,7 +115,7 @@ export default {
     },
     getPageNotes(uri) {
       let notes = logseq.settings?.annotations?.filter(x => x.uri === uri);
-      const title = notes[0]?.document.title;
+      const title = notes[0]?.document.title[0];
       const hids = new Set(notes.map(({id})=>id));
       let noteMap = new Map(notes.reduce((acc, { id, text, tags, target, updated, references }) => {
         const exact = target[0]?.selector?.filter(s => 'exact' in s)[0]?.exact;
@@ -164,28 +164,59 @@ export default {
       this.updating = true;
 
       try {
-        const name = 'hypothesis__/' + uri.split('//')[1]
-        logseq.App.pushState('page', { name })
+        let {title: hypothesisTitle, noteMap} = this.getPageNotes(uri)
+        const logseqTitle = (await this.findPageName(uri)) || (await this.findPageNameV1(uri))
+        
+        //If page isn't found, create new one with hypothesisTitle. This approach allows for the title to be changed by the user
+        const pageTitle = logseqTitle ? logseqTitle : 'hypothesis__/' + hypothesisTitle;
+        logseq.App.pushState('page', { name: pageTitle })
         await delay(300)
 
         const page = await logseq.Editor.getCurrentPage();
-        if (name !== page.originalName)
+        if (pageTitle !== page.originalName)
           throw new Error('page error');
 
-        await this.loadPageNotes(page, uri);
+        await this.loadPageNotes(page, uri, hypothesisTitle, noteMap);
       } finally {
         this.updating = false;
       }
     },
-    async loadPageNotes(page, uri) {
+    async findPageName(uri) {
+      const finds = (await logseq.DB.datascriptQuery(`
+      [:find (pull ?b [*])
+       :where
+       [?b :block/properties ?p]
+       [?b :block/name _]
+       [(get ?p :hypothesis-uri) ?t]
+       [(= "${uri}" ?t)]]
+       `)).flat()
+
+       if(finds.length > 1) {
+         //TODO: throw error
+         throw new Error("Multiple pages has the same title")
+       } else if (finds == 0) {
+         //throw new Error("Page doesn't exist")
+         return
+       } else return finds[0]["original-name"]
+    },
+    async findPageNameV1(uri) {
+      const name = 'hypothesis__/' + uri.replace('.', '/').split('//')[1]
+      const finds = (await logseq.DB.datascriptQuery(`
+        [:find (pull ?b [*]) :where [?b :block/name "${name}"]]`)).flat()
+      return finds.length ? finds[0]["original-name"] : null
+    },
+    async loadPageNotes(page, uri, title, noteMap) {
       if (!page || !uri) return
-      let {title, noteMap} = this.getPageNotes(uri);
+      
+      // hypothesis-uri is the prop by which the plugin identifies each page
+      // hypothesis-naming-scheme is added for improved backwards compatability for later updates
+      const pagePropBlockString = `:PROPERTIES:\n:hypothesis-uri: ${uri}\n:hypothesis-title: "${title}"\n:hypothesis-naming-scheme: 0.2.0\n:END:` // for both org and markdown
 
       let pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
-      let targetBlock = pageBlocksTree[0];
-      if (!targetBlock) {
-        targetBlock = await logseq.Editor.insertBlock(page.name, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`, { isPageBlock: true });
-        pageBlocksTree = [targetBlock];
+      let pagePropBlock = pageBlocksTree[0];
+      if (!pagePropBlock) {
+        pagePropBlock = await logseq.Editor.insertBlock(page.name, pagePropBlockString, { isPageBlock: true, properties: { preBlock: true } });
+        pageBlocksTree = [pagePropBlock];
       }
 
       const blocks = pageBlocksTree.slice(1);
@@ -201,21 +232,26 @@ export default {
         blockMap.set(hid, block);
       }
 
-      await logseq.Editor.updateBlock(targetBlock.uuid, `[:a {:href "${uri}" :target "_blank" :class "external-link"} [:span {:class "icon-hypothesis forbid-edit"}] " ${title}"]`);
+      await logseq.Editor.updateBlock(pagePropBlock.uuid, pagePropBlockString);
     },
     async updatePage() {
         const page = await logseq.Editor.getCurrentPage();
-        if (!page.name.startsWith("hypothesis__/"))
-          return;
-        const pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
-        if (pageBlocksTree.length < 1)
-          return;
-        const re = /{:href\s"(.*?)"/
-        const m = pageBlocksTree[0].content.match(re)
-        if (!m || !m[1])
-          return;
+        let uri = page?.properties?.hypothesisUri;
+        if (!uri) {
+          if (!page.name.startsWith("hypothesis__/")) // handle naming scheme v0.1
+            return;
+          const pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
+          if (pageBlocksTree.length < 1)
+            return;
+          const re = /{:href\s"(.*?)"/
+          const m = pageBlocksTree[0].content.match(re)
+          if (!m || !m[1])
+            return;
+          uri = m[1];
+        }
         await this.fetchUpdates();
-        await this.loadPageNotes(page, m[1])
+        const {title, noteMap} = this.getPageNotes(uri)
+        await this.loadPageNotes(page, uri, title, noteMap)
     }
   },
 }
