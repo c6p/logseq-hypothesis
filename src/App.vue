@@ -7,8 +7,14 @@
         <button id="fetch" @click="fetchUpdates()">Fetch Updates</button>
         <label for="user">User:</label>
         <input id="user" placeholder="username@hypothes.is" :value="user" @change="setUser" />
-        <button id="create" @click="loadPage(uri)">Get Selected Page</button>
-        <v-select ref="select" class="select" id="uri" v-model="uri" :options="uris" :clearable="false"></v-select>
+        <button id="create" @click="loadPage(item)">Get Selected Page</button>
+        <v-select ref="select" class="select" id="uri" v-model="item" :get-option-label="i => `${i.title} | ${i.uri}`" :filter="fuseSearch" :options="items" :clearable="false">
+          <template #option="{uri, title}">
+            <b>{{ title }}</b>
+            <br />
+            {{ uri }}
+          </template>
+        </v-select>
       </div>
     </div>
     <div v-if="fetching || updating" class="lds-ripple"><div></div><div></div></div>
@@ -17,6 +23,8 @@
 
 <script>
 import axios from 'axios';
+import Fuse from 'fuse.js';
+import { from as iterFrom } from "core-js-pure/features/iterator";
 
 const delay = (t = 100) => new Promise(r => setTimeout(r, t))
 const flatten = array => array.reduce((a, {children = []}) => a.concat(flatten(children)), array);
@@ -34,11 +42,11 @@ export default {
       apiToken: "",
       user: "",
       annotations: [],
-      uri: "",
+      item: {uri:"", title:""}
     }
   },
   computed: {
-    uris: function() { return [...new Set((this.annotations || []).map(a => a.uri))].reverse() }
+    items: function() { return [...iterFrom(new Map((this.annotations || []).map(a => [a.uri, a.document.title?.[0]])).entries()).map(([uri, title]) => {return {uri, title}})].reverse() }
   },
   mounted () {
     logseq.once('ui:visible:changed', ({ visible }) => {
@@ -54,6 +62,14 @@ export default {
     })
   },
   methods: {
+    fuseSearch(options, search) {
+      const fuse = new Fuse(options, {
+        keys: ['title', 'uri']
+      })
+      return search.length
+        ? fuse.search(search).map(({ item }) => item)
+        : fuse.list
+    },
     hideMainUI() {
       logseq.hideMainUI()
     },
@@ -159,7 +175,7 @@ export default {
 
       return {title, noteMap}
     },
-    async loadPage(uri) {
+    async loadPage({uri}) {
       if (!uri || this.updating) return
       this.updating = true;
 
