@@ -1,3 +1,5 @@
+> If you like this plugin, you can [buy me a ☕ here](https://www.buymeacoffee.com/c.6p)
+    
 # Logseq Hypothes.is Plugin
 ![hypo](https://user-images.githubusercontent.com/80478/130854045-ac8c603f-0e07-4531-b195-c15833475052.jpg)
 
