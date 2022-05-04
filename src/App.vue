@@ -2,33 +2,65 @@
   <div id="wrapper" @click="onClickOutside">
     <div id="hypothesis" v-if="visible">
       <div id="form">
-        <label for="token">API token:</label>
-        <input id="token" :value="apiToken" @change="setAPIToken" />
-        <button id="fetch" @click="fetchUpdates()">Fetch Updates</button>
-        <label for="user">User:</label>
-        <input
-          id="user"
-          placeholder="username@hypothes.is"
-          :value="user"
-          @change="setUser"
-        />
-        <button id="create" @click="loadPage(item)">Get Selected Page</button>
-        <v-select
-          ref="select"
-          class="select"
-          id="uri"
-          v-model="item"
-          :get-option-label="(i) => `${i.title} | ${i.uri}`"
-          :filter="fuseSearch"
-          :options="items"
-          :clearable="false"
+        <fieldset id="accountSetupFields">
+          <legend>Account setup</legend>
+          <div class="fieldLabel">
+            <label for="token">API token</label>
+          </div>
+          <input
+            id="token"
+            :value="apiToken"
+            @change="setAPIToken"
+            spellcheck="false"
+          />
+          <div class="fieldLabel">
+            <label for="user">Username</label>
+          </div>
+          <input
+            id="user"
+            placeholder="username@hypothes.is"
+            :value="user"
+            @change="setUser"
+          />
+          <p class="text-small">
+            If you are not using a third party hypothes.is provider, your user
+            account is <code>username@hypothes.is</code>
+          </p>
+        </fieldset>
+        <button
+          id="fetch"
+          @click="fetchUpdates()"
+          :disabled="fetching || updating"
         >
-          <template #option="{ uri, title }">
-            <b>{{ title }}</b>
-            <br />
-            {{ uri }}
-          </template>
-        </v-select>
+          <span v-if="fetching || updating">Fetching updates... </span
+          ><span v-else>🔄 Fetch latest notes</span>
+        </button>
+        <fieldset>
+          <legend>Create page from hypothesis notes</legend>
+          <v-select
+            ref="select"
+            class="select"
+            id="uri"
+            v-model="item"
+            :get-option-label="(i) => `${i.title} | ${i.uri}`"
+            :filter="fuseSearch"
+            :options="items"
+            :clearable="false"
+          >
+            <template #option="{ uri, title }">
+              <b>{{ title }}</b>
+              <br />
+              {{ uri }}
+            </template>
+          </v-select>
+          <button
+            id="create"
+            @click="loadPage(item)"
+            :disabled="item.uri === '' && item.title === ''"
+          >
+            Add page notes to graph
+          </button>
+        </fieldset>
       </div>
     </div>
     <div v-if="fetching || updating" class="lds-ripple">
@@ -231,7 +263,8 @@ export default {
         const logseqTitle =
           (await this.findPageName(uri)) || (await this.findPageNameV1(uri));
 
-        //If page isn't found, create new one with hypothesisTitle. This approach allows for the title to be changed by the user
+        //If page isn't found, create new one with hypothesisTitle. This
+        //approach allows for the title to be changed by the user
         const pageTitle = logseqTitle
           ? logseqTitle
           : "hypothesis__/" + hypothesisTitle;
