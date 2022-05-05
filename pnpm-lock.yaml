@@ -1,10 +1,11 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
   '@logseq/libs': ^0.0.1-alpha.26
   axios: ^0.21.1
   core-js-pure: ^3.21.1
   fuse.js: ^6.5.3
+  prettier: ^2.6.2
   vite: ^2.0.2
   vite-plugin-vue2: ^1.2.1
   vue: ^2.6.12
@@ -20,8 +21,9 @@ dependencies:
   vue-select: 3.13.0_vue@2.6.14
 
 devDependencies:
+  prettier: 2.6.2
   vite: 2.5.1
-  vite-plugin-vue2: 1.8.2_c001214a953b786edf190dc0592b13b7
+  vite-plugin-vue2: 1.8.2_yaascsuvhn4g5xyzbxafskytw4
   vue-template-compiler: 2.6.14
 
 packages:
@@ -1352,8 +1354,8 @@ packages:
     dev: true
     optional: true
 
-  /prettier/2.4.1:
-    resolution: {integrity: sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA==}
+  /prettier/2.6.2:
+    resolution: {integrity: sha512-PkUpF+qoXTqhOeWL9fu7As8LXsIUZ1WYaJiY/a7McAQzxjk82OF0tibkFXVCDImZtWxbvojFjerkiLb0/q8mew==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
@@ -1530,7 +1532,7 @@ packages:
       inherits: 2.0.3
     dev: false
 
-  /vite-plugin-vue2/1.8.2_c001214a953b786edf190dc0592b13b7:
+  /vite-plugin-vue2/1.8.2_yaascsuvhn4g5xyzbxafskytw4:
     resolution: {integrity: sha512-qQXLH+yVn5o7cq+KJULyty4OxWKQ3lsvrYx8QkLO78LsM+/r1gEytfcXiqewnvgP7eTkJ5Pd/kHbfDce1Pim/w==}
     peerDependencies:
       vite: ^2.0.0-beta.23
@@ -1551,7 +1553,7 @@ packages:
       fs-extra: 9.1.0
       hash-sum: 2.0.0
       magic-string: 0.25.7
-      prettier: 2.4.1
+      prettier: 2.6.2
       querystring: 0.2.1
       rollup: 2.56.3
       slash: 3.0.0

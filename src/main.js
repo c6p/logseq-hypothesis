@@ -1,16 +1,16 @@
 import "@logseq/libs";
-import Vue from 'vue'
-import vSelect from 'vue-select'
-import App from './App.vue'
-import "./index.css"
-import Font from "./icomoon.woff"
+import Vue from "vue";
+import vSelect from "vue-select";
+import App from "./App.vue";
+import "./index.css";
+import Font from "./icomoon.woff";
 
 function main() {
   const pluginId = logseq.baseInfo.id;
   console.info(`#${pluginId}: MAIN`);
 
-  Vue.component('v-select', vSelect)
-  const app = new Vue({ el: '#app', render: h => h(App) });
+  Vue.component("v-select", vSelect);
+  const app = new Vue({ el: "#app", render: (h) => h(App) });
 
   function createModel() {
     return {
@@ -19,7 +19,7 @@ function main() {
       },
       updatePage() {
         app.$children[0].updatePage();
-      }
+      },
     };
   }
 
@@ -55,15 +55,15 @@ function main() {
     div[id^="hypothesis__/"] .block-properties:not(.page-properties) { display: none; }
   `);
 
-  logseq.App.registerUIItem('toolbar', {
-    key: 'hypothesis',
+  logseq.App.registerUIItem("toolbar", {
+    key: "hypothesis",
     template: `<a data-on-click="show" title="Hypothes.is" class="button">
     <span class="icon-hypothesis"></span>
     </a>`,
   });
 
-  logseq.App.registerUIItem('pagebar', {
-    key: 'hypothesis-page',
+  logseq.App.registerUIItem("pagebar", {
+    key: "hypothesis-page",
     template: `<a data-on-click="updatePage" title="Update current page" class="button">
     <span class="icon-hypothesis"></span>
     </a>`,

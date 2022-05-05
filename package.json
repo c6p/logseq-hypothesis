@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "format": "prettier --write '**/*.{js,jsx,ts,tsx,vue}'"
   },
   "license": "MIT",
   "dependencies": {
@@ -18,6 +19,7 @@
     "vue-select": "^3.13.0"
   },
   "devDependencies": {
+    "prettier": "^2.6.2",
     "vite": "^2.0.2",
     "vite-plugin-vue2": "^1.2.1",
     "vue-template-compiler": "^2.6.12"
