@@ -1,6 +1,6 @@
 <template>
   <div id="wrapper" @click="onClickOutside">
-    <div id="hypothesis" v-if="visible">
+    <div id="hypothesis" v-if="visible" :class="theme">
       <div id="form">
         <fieldset id="accountSetupFields">
           <legend>Account setup</legend>
@@ -93,6 +93,7 @@ export default {
       user: "",
       annotations: [],
       item: { uri: "", title: "" },
+      theme: "dark",
     };
   },
   computed: {
@@ -120,6 +121,12 @@ export default {
     logseq.on("ui:visible:changed", ({ visible }) => {
       visible && this.$nextTick(() => this.$refs.select.$el.focus());
     });
+
+    logseq.App.onThemeModeChanged((s) => {
+      this.theme = s.mode;
+    });
+
+    this.theme = getTheme();
   },
   methods: {
     fuseSearch(options, search) {
@@ -129,6 +136,12 @@ export default {
       return search.length
         ? fuse.search(search).map(({ item }) => item)
         : fuse.list;
+    },
+    getTheme() {
+      return top?.document.querySelector("html")?.getAttribute("data-theme") ??
+        matchMedia("prefers-color-scheme: dark").matches
+        ? "dark"
+        : "light";
     },
     hideMainUI() {
       logseq.hideMainUI();
@@ -193,48 +206,55 @@ export default {
       return res.data.rows;
     },
     getPageNotes(uri) {
-      let notes = logseq.settings?.annotations?.filter((x) => x.uri === uri);
-      const title = notes[0]?.document.title[0];
-      const hids = new Set(notes.map(({ id }) => id));
+      let annotations = logseq.settings?.annotations?.filter(
+        (x) => x.uri === uri
+      );
+      const title = annotations[0]?.document.title[0];
+      const hids = new Set(annotations.map(({ id }) => id));
       let noteMap = new Map(
-        notes.reduce((acc, { id, text, tags, target, updated, references }) => {
-          const exact = target[0]?.selector?.filter((s) => "exact" in s)[0]
-            ?.exact;
-          tags = tags.map((t) => `#[[${t}]]`).join(" ");
-          let content = "";
-          if (exact) {
-            content += `📌 ${exact} ${tags}`;
-            if (text) content += `\n📝 ${text}`;
-          } else {
-            content += `📝 ${text} ${tags}`;
-          }
-          let properties = { hid: id, updated };
-          // add deleted references
-          for (const [i, r] of references?.entries() ?? []) {
-            if (!hids.has(r)) {
-              acc.push([
-                r,
-                {
-                  content: "🗑️",
-                  properties: { hid: r },
-                  parent: references[i - 1],
-                },
-              ]);
+        annotations.reduce(
+          (acc, { id, text, tags, target, updated, references }) => {
+            const exact = target[0]?.selector?.filter((s) => "exact" in s)[0]
+              ?.exact;
+            tags = tags.map((t) => `#[[${t}]]`).join(" ");
+            let highlight = "";
+            let notes = "";
+            if (exact) {
+              highlight += `> ${exact} ${tags}\n`;
+              if (text) notes = text;
+            } else {
+              highlight += `${text} ${tags}\n`;
             }
-          }
-          // add note
-          acc.push([
-            id,
-            {
-              content,
-              properties,
-              parent: references
-                ? references[references.length - 1]
-                : undefined,
-            },
-          ]);
-          return acc;
-        }, [])
+            let properties = { hid: id, updated };
+            // add deleted references
+            for (const [i, r] of references?.entries() ?? []) {
+              if (!hids.has(r)) {
+                acc.push([
+                  r,
+                  {
+                    highlight: "🗑️",
+                    properties: { hid: r },
+                    parent: references[i - 1],
+                  },
+                ]);
+              }
+            }
+            // add note
+            acc.push([
+              id,
+              {
+                highlight,
+                notes,
+                properties,
+                parent: references
+                  ? references[references.length - 1]
+                  : undefined,
+              },
+            ]);
+            return acc;
+          },
+          []
+        )
       );
       // create tree
       let after = null;
@@ -296,6 +316,7 @@ export default {
         throw new Error("Multiple pages has the same title");
       } else if (finds == 0) {
         //throw new Error("Page doesn't exist")
+        console.log("Page doesn't exist");
         return;
       } else return finds[0]["original-name"];
     },
@@ -310,24 +331,32 @@ export default {
     async loadPageNotes(page, uri, title, noteMap) {
       if (!page || !uri) return;
 
-      // hypothesis-uri is the prop by which the plugin identifies each page
-      // hypothesis-naming-scheme is added for improved backwards compatability for later updates
-      const pagePropBlockString = `:PROPERTIES:\n:hypothesis-uri: ${uri}\n:hypothesis-title: "${title}"\n:hypothesis-naming-scheme: 0.2.0\n:END:`; // for both org and markdown
-
       let pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
       let pagePropBlock = pageBlocksTree[0];
       if (!pagePropBlock) {
         pagePropBlock = await logseq.Editor.insertBlock(
           page.name,
-          pagePropBlockString,
-          { isPageBlock: true, properties: { preBlock: true } }
+          "Hypothesis metadata",
+          {
+            isPageBlock: true,
+            properties: {
+              preBlock: true,
+              // hypothesis-uri is the prop by which the plugin identifies each page
+              "hypothesis-uri": uri,
+              "hypothesis-title": title,
+              // hypothesis-naming-scheme is added for improved backwards compatability for later updates
+              "hypothesis-naming-scheme": "0.2.0",
+            },
+          }
         );
         pageBlocksTree = [pagePropBlock];
       }
 
       const blocks = pageBlocksTree.slice(1);
       const blockMap = new Map(
-        flatten(blocks).map((b) => [b.properties.hid, b])
+        flatten(blocks)
+          .filter((b) => b?.properties && b?.properties?.hid)
+          .map((b) => [b.properties.hid, b])
       );
       const n_b = [...noteMap.values()].filter(
         (n) => !blockMap.has(n.properties.hid)
@@ -335,18 +364,30 @@ export default {
 
       for (const n of n_b) {
         const { hid, updated } = n.properties;
-        const content = `${n.content}\n:PROPERTIES:\n:hid:${hid}\n:updated:${updated}\n:END:`;
-        const { parent, after } = n;
+        const content = n.highlight.trim();
+        const { parent, after, notes } = n;
         const source = blockMap.get(parent ?? after);
         const block = await logseq.Editor.insertBlock(
           source?.uuid ?? page.name,
           content,
-          { sibling: !parent, isPageBlock: !source }
+          {
+            properties: {
+              hid,
+              updated,
+            },
+            sibling: !parent,
+            isPageBlock: !source,
+          }
         );
+        if (notes) {
+          await logseq.Editor.insertBlock(block.uuid, notes, {
+            sibling: false,
+          });
+        }
         blockMap.set(hid, block);
       }
 
-      await logseq.Editor.updateBlock(pagePropBlock.uuid, pagePropBlockString);
+      // await logseq.Editor.updateBlock(pagePropBlock.uuid, "");
     },
     async updatePage() {
       const page = await logseq.Editor.getCurrentPage();

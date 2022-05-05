@@ -15,11 +15,6 @@ body {
   bottom: 0;
 }
 
-html[data-theme="light"] {
-  --ls-bg-color: rgb(255, 255, 255);
-  --ls-color-primary: rgb(107, 114, 128);
-}
-
 p {
   color: var(--ls-color-primary);
   margin: 0;
@@ -30,6 +25,8 @@ p {
 }
 
 #hypothesis {
+  --ls-bg-color: rgb(0, 0, 0);
+  --ls-color-primary: rgb(255, 255, 255);
   max-width: fit-content;
   border-radius: 0.25rem;
   position: absolute;
@@ -47,6 +44,11 @@ p {
     var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
+#hypothesis.light {
+  --ls-bg-color: rgb(255, 255, 255);
+  --ls-color-primary: rgb(107, 114, 128);
+}
+
 #form {
   display: flex;
   flex-direction: column;
@@ -56,18 +58,39 @@ p {
   min-width: 350px;
 }
 
+.light .select .vs__search::placeholder,
+.light .select .vs__dropdown-toggle,
+.light .select .vs__dropdown-menu {
+  background: white;
+  color: black;
+}
+
 .select .vs__search::placeholder,
 .select .vs__dropdown-toggle,
 .select .vs__dropdown-menu {
-  background: white;
-  color: black;
+  background: #333;
+  color: white;
   font-size: 85%;
 }
+
+.light .vs__dropdown-option {
+  color: black;
+}
+
+.dark .vs__dropdown-option {
+  color: white;
+}
+
 .vs__selected-options {
   width: 0;
 }
-.vs__selected {
+
+.light .vs__selected {
   color: black;
+}
+
+.vs__selected {
+  color: white;
   display: block;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -75,9 +98,34 @@ p {
   overflow: hidden;
 }
 
-#fetch {
-  min-height: 3rem;
-  padding: 0.5rem 1rem;
+.vs__clear {
+  fill: #0084c7;
+}
+
+.dark .vs--single.vs--open .vs__selected {
+  opacity: 0.8;
+}
+
+#fetch,
+button {
+  background-color: #0084c7;
+  border-radius: 8px;
+  border: 0;
+  color: white;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  width: fit-content;
+}
+
+#fetch:hover:not(:disabled),
+button:hover:not(:disabled) {
+  background-color: rgb(0, 91, 138);
+}
+
+#fetch:disabled,
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 #create {
@@ -133,6 +181,13 @@ input {
 
 #accountSetupFields input {
   margin-bottom: 0.5rem;
+}
+
+.dark #accountSetupFields input {
+  color: white;
+  background-color: #333;
+  border: 2px solid #333;
+  border-style: inset;
 }
 
 #accountSetupFields p {
