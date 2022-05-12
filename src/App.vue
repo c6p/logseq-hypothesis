@@ -209,13 +209,12 @@ export default {
             const exact = target[0]?.selector?.filter((s) => "exact" in s)[0]
               ?.exact;
             tags = tags.map((t) => `#[[${t}]]`).join(" ");
-            let highlight = "";
-            let notes = "";
+            let content = "";
             if (exact) {
-              highlight += `> ${exact} ${tags}\n`;
-              if (text) notes = text;
+              content += `📌 ${exact} ${tags}`;
+              if (text) content += `\n📝 ${text}`;
             } else {
-              highlight += `${text} ${tags}\n`;
+              content += `📝 ${text} ${tags}`;
             }
             let properties = { hid: id, updated };
             // add deleted references
@@ -224,7 +223,7 @@ export default {
                 acc.push([
                   r,
                   {
-                    highlight: "🗑️",
+                    content: "🗑️",
                     properties: { hid: r },
                     parent: references[i - 1],
                   },
@@ -235,8 +234,7 @@ export default {
             acc.push([
               id,
               {
-                highlight,
-                notes,
+                content,
                 properties,
                 parent: references
                   ? references[references.length - 1]
@@ -354,8 +352,8 @@ export default {
 
       for (const n of n_b) {
         const { hid, updated } = n.properties;
-        const content = n.highlight.trim();
-        const { parent, after, notes } = n;
+        const content = n.content.trim();
+        const { parent, after } = n;
         const source = blockMap.get(parent ?? after);
         const block = await logseq.Editor.insertBlock(
           source?.uuid ?? page.name,
@@ -369,11 +367,6 @@ export default {
             isPageBlock: !source,
           }
         );
-        if (notes) {
-          await logseq.Editor.insertBlock(block.uuid, notes, {
-            sibling: false,
-          });
-        }
         blockMap.set(hid, block);
       }
 
