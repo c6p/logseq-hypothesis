@@ -109,7 +109,7 @@ export default {
       ].reverse();
     },
   },
-  mounted() {
+  async mounted() {
     logseq.once("ui:visible:changed", ({ visible }) => {
       visible && (this.visible = true);
       // init
@@ -126,7 +126,7 @@ export default {
       this.theme = s.mode;
     });
 
-    this.theme = getTheme();
+    this.theme = (await logseq.App.getUserConfig()).preferredThemeMode;
   },
   methods: {
     fuseSearch(options, search) {
@@ -136,12 +136,6 @@ export default {
       return search.length
         ? fuse.search(search).map(({ item }) => item)
         : fuse.list;
-    },
-    getTheme() {
-      return top?.document.querySelector("html")?.getAttribute("data-theme") ??
-        matchMedia("prefers-color-scheme: dark").matches
-        ? "dark"
-        : "light";
     },
     hideMainUI() {
       logseq.hideMainUI();
