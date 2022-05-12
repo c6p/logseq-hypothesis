@@ -336,7 +336,7 @@ export default {
       if (!pagePropBlock) {
         pagePropBlock = await logseq.Editor.insertBlock(
           page.name,
-          "Hypothesis metadata",
+          pagePropBlock,
           {
             isPageBlock: true,
             properties: {
