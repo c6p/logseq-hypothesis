@@ -331,24 +331,22 @@ export default {
     async loadPageNotes(page, uri, title, noteMap) {
       if (!page || !uri) return;
 
+      const pageProperties = {
+        preBlock: true,
+        // hypothesis-uri is the prop by which the plugin identifies each page
+        "hypothesis-uri": uri,
+        "hypothesis-title": title,
+        // hypothesis-naming-scheme is added for improved backwards compatability for later updates
+        "hypothesis-naming-scheme": "0.2.0",
+      };
+
       let pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree();
       let pagePropBlock = pageBlocksTree[0];
       if (!pagePropBlock) {
-        pagePropBlock = await logseq.Editor.insertBlock(
-          page.name,
-          pagePropBlock,
-          {
-            isPageBlock: true,
-            properties: {
-              preBlock: true,
-              // hypothesis-uri is the prop by which the plugin identifies each page
-              "hypothesis-uri": uri,
-              "hypothesis-title": title,
-              // hypothesis-naming-scheme is added for improved backwards compatability for later updates
-              "hypothesis-naming-scheme": "0.2.0",
-            },
-          }
-        );
+        pagePropBlock = await logseq.Editor.insertBlock(page.name, "", {
+          isPageBlock: true,
+          properties: pageProperties,
+        });
         pageBlocksTree = [pagePropBlock];
       }
 
@@ -387,7 +385,14 @@ export default {
         blockMap.set(hid, block);
       }
 
-      // await logseq.Editor.updateBlock(pagePropBlock.uuid, "");
+      // Upgrade pre-block or page properties from old naming schema
+      await Object.entries(pageProperties).map(async ([property, value]) => {
+        await logseq.Editor.upsertBlockProperty(
+          pagePropBlock.uuid,
+          property,
+          value
+        );
+      });
     },
     async updatePage() {
       const page = await logseq.Editor.getCurrentPage();
