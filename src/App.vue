@@ -2,8 +2,8 @@
   <div id="wrapper" @click="onClickOutside">
     <div id="hypothesis" v-if="visible" :class="theme">
       <div id="form">
-        <fieldset id="accountSetupFields">
-          <legend>Account setup</legend>
+        <div class="accountSetupFields">
+          <h2>Account setup</h2>
           <div class="fieldLabel">
             <label for="token">API token</label>
           </div>
@@ -26,7 +26,7 @@
             If you are not using a third party hypothes.is provider, your user
             account is <code>username@hypothes.is</code>
           </p>
-        </fieldset>
+        </div>
         <button
           id="fetch"
           @click="fetchUpdates()"
@@ -35,32 +35,30 @@
           <span v-if="fetching || updating">Fetching updates... </span
           ><span v-else>🔄 Fetch latest notes</span>
         </button>
-        <fieldset>
-          <legend>Create page from hypothesis notes</legend>
-          <v-select
-            ref="select"
-            class="select"
-            id="uri"
-            v-model="item"
-            :get-option-label="(i) => `${i.title} | ${i.uri}`"
-            :filter="fuseSearch"
-            :options="items"
-            :clearable="false"
-          >
-            <template #option="{ uri, title }">
-              <b>{{ title }}</b>
-              <br />
-              {{ uri }}
-            </template>
-          </v-select>
-          <button
-            id="create"
-            @click="loadPage(item)"
-            :disabled="item.uri === '' && item.title === ''"
-          >
-            Add page notes to graph
-          </button>
-        </fieldset>
+        <h2>Create page from hypothesis notes</h2>
+        <v-select
+          ref="select"
+          class="select"
+          id="uri"
+          v-model="item"
+          :get-option-label="(i) => `${i.title} | ${i.uri}`"
+          :filter="fuseSearch"
+          :options="items"
+          :clearable="false"
+        >
+          <template #option="{ uri, title }">
+            <b>{{ title }}</b>
+            <br />
+            {{ uri }}
+          </template>
+        </v-select>
+        <button
+          id="create"
+          @click="loadPage(item)"
+          :disabled="item.uri === '' && item.title === ''"
+        >
+          Add page notes to graph
+        </button>
       </div>
     </div>
     <div v-if="fetching || updating" class="lds-ripple">

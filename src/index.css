@@ -34,7 +34,7 @@ p {
   right: 2rem;
   background-color: var(--ls-bg-color);
   color: var(--ls-color-primary);
-  padding: 0.5rem 1rem;
+  padding: 1rem;
   --tw-shadow: 0 4px 6px -1px rgb(0 0 0/0.1), 0 2px 4px -2px rgb(0 0 0/0.1);
   --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color),
     0 2px 4px -2px var(--tw-shadow-color);
@@ -54,7 +54,6 @@ p {
   flex-direction: column;
   padding: 0.25em;
   gap: 1rem;
-  max-width: fit-content;
   min-width: 350px;
 }
 
@@ -108,6 +107,7 @@ p {
 
 #fetch,
 button {
+  align-self: flex-end;
   background-color: #0084c7;
   border-radius: 8px;
   border: 0;
@@ -167,31 +167,36 @@ input {
 }
 
 #token {
-  max-width: 40ch;
+  max-width: 55ch;
 }
 
 #user {
   max-width: 30ch;
 }
 
-#accountSetupFields {
+.accountSetupFields {
   display: flex;
   flex-direction: column;
 }
 
-#accountSetupFields input {
+.accountSetupFields h2 {
+  margin-top: 0
+}
+
+.accountSetupFields input {
   margin-bottom: 0.5rem;
 }
 
-.dark #accountSetupFields input {
+.dark .accountSetupFields input {
   color: white;
   background-color: #333;
   border: 2px solid #333;
   border-style: inset;
 }
 
-#accountSetupFields p {
+.accountSetupFields p {
   margin-bottom: 0.25rem;
+  /* max-width: 72ch; */
 }
 
 /* Animations */
