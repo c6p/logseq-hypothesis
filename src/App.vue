@@ -124,7 +124,7 @@ export default {
       this.theme = s.mode;
     });
 
-    this.theme = (await logseq.App.getUserConfig()).preferredThemeMode;
+    this.theme = (await logseq.App.getUserConfigs()).preferredThemeMode;
   },
   methods: {
     fuseSearch(options, search) {
@@ -304,7 +304,7 @@ export default {
       if (finds.length > 1) {
         //TODO: throw error
         throw new Error("Multiple pages has the same title");
-      } else if (finds == 0) {
+      } else if (finds.length == 0) {
         //throw new Error("Page doesn't exist")
         console.log("Page doesn't exist");
         return;

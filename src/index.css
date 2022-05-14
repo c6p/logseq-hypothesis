@@ -188,11 +188,12 @@ input {
 }
 
 .dark .accountSetupFields input {
-  color: white;
   background-color: #333;
   border: 2px solid #333;
   border-style: inset;
 }
+
+.dark input { color: white }
 
 .accountSetupFields p {
   margin-bottom: 0.25rem;
