@@ -322,7 +322,6 @@ export default {
       if (!page || !uri) return;
 
       const pageProperties = {
-        preBlock: true,
         // hypothesis-uri is the prop by which the plugin identifies each page
         "hypothesis-uri": uri,
         "hypothesis-title": title,
@@ -370,7 +369,10 @@ export default {
         blockMap.set(hid, block);
       }
 
-      // Upgrade pre-block or page properties from old naming schema
+      // upgrade pre-block with page-properties from old format
+      const newFormat = "preBlock?" in pagePropBlock;
+      if (!newFormat)
+        await logseq.Editor.updateBlock(pagePropBlock.uuid, "");
       await Object.entries(pageProperties).map(async ([property, value]) => {
         await logseq.Editor.upsertBlockProperty(
           pagePropBlock.uuid,
@@ -378,6 +380,12 @@ export default {
           value
         );
       });
+      // workaround to force preBlock? - see https://github.com/logseq/logseq/issues/5298
+      if (!newFormat) {
+        const content = (await logseq.Editor.getBlock(pagePropBlock.uuid)).content;
+        await logseq.Editor.updateBlock(pagePropBlock.uuid, "");
+        await logseq.Editor.updateBlock(pagePropBlock.uuid, content);
+      }
     },
     async updatePage() {
       const page = await logseq.Editor.getCurrentPage();
