@@ -14,36 +14,82 @@ body {
   right: 0;
   bottom: 0;
 }
+
+p {
+  color: var(--ls-color-primary);
+  margin: 0;
+}
+
+.text-small {
+  font-size: 0.8rem;
+}
+
 #hypothesis {
-  max-width: 100%;
+  --ls-bg-color: rgb(0, 0, 0);
+  --ls-color-primary: rgb(255, 255, 255);
+  max-width: fit-content;
+  border-radius: 0.25rem;
   position: absolute;
-  top: 3em;
-  right: 0;
-  background-color: #ccc;
+  top: 3rem;
+  right: 2rem;
+  background-color: var(--ls-bg-color);
+  color: var(--ls-color-primary);
+  padding: 1rem;
+  --tw-shadow: 0 4px 6px -1px rgb(0 0 0/0.1), 0 2px 4px -2px rgb(0 0 0/0.1);
+  --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color),
+    0 2px 4px -2px var(--tw-shadow-color);
+  -webkit-box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+#hypothesis.light {
+  --ls-bg-color: rgb(255, 255, 255);
+  --ls-color-primary: rgb(107, 114, 128);
 }
 
 #form {
-  display: grid;
-  grid-template-areas:
-    "label input fetch"
-    "label input create"
-    "select select select";
-  grid-gap: 0.1em 1em;
-  padding: 0.1em;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25em;
+  gap: 1rem;
+  min-width: 350px;
+}
+
+.light .select .vs__search::placeholder,
+.light .select .vs__dropdown-toggle,
+.light .select .vs__dropdown-menu {
+  background: white;
+  color: black;
 }
 
 .select .vs__search::placeholder,
 .select .vs__dropdown-toggle,
 .select .vs__dropdown-menu {
-  background: white;
-  color: black;
+  background: #333;
+  color: white;
   font-size: 85%;
 }
+
+.light .vs__dropdown-option {
+  color: black;
+}
+
+.dark .vs__dropdown-option {
+  color: white;
+}
+
 .vs__selected-options {
   width: 0;
 }
-.vs__selected {
+
+.light .vs__selected {
   color: black;
+}
+
+.vs__selected {
+  color: white;
   display: block;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -51,17 +97,45 @@ body {
   overflow: hidden;
 }
 
-.select {
-  grid-area: select;
+.vs__clear {
+  fill: #0084c7;
 }
-#fetch {
-  grid-area: fetch;
+
+.dark .vs--single.vs--open .vs__selected {
+  opacity: 0.8;
 }
+
+#fetch,
+button {
+  align-self: flex-end;
+  background-color: #0084c7;
+  border-radius: 8px;
+  border: 0;
+  color: white;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  width: fit-content;
+}
+
+#fetch:hover:not(:disabled),
+button:hover:not(:disabled) {
+  background-color: rgb(0, 91, 138);
+}
+
+#fetch:disabled,
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 #create {
-  grid-area: create;
+  margin-top: 1rem;
+  min-height: 2rem;
+  padding: 0.5rem 1rem;
 }
+
 input {
-  width: 30em;
+  padding: 0.5rem;
 }
 
 #hypothesis iframe {
@@ -85,6 +159,48 @@ input {
 .lds-ripple div:nth-child(2) {
   animation-delay: -0.5s;
 }
+
+/* Fields */
+
+.fieldLabel {
+  margin-bottom: 0.5rem;
+}
+
+#token {
+  max-width: 55ch;
+}
+
+#user {
+  max-width: 30ch;
+}
+
+.accountSetupFields {
+  display: flex;
+  flex-direction: column;
+}
+
+.accountSetupFields h2 {
+  margin-top: 0
+}
+
+.accountSetupFields input {
+  margin-bottom: 0.5rem;
+}
+
+.dark .accountSetupFields input {
+  background-color: #333;
+  border: 2px solid #333;
+  border-style: inset;
+}
+
+.dark input { color: white }
+
+.accountSetupFields p {
+  margin-bottom: 0.25rem;
+  /* max-width: 72ch; */
+}
+
+/* Animations */
 @keyframes lds-ripple {
   0% {
     top: 36px;
@@ -93,6 +209,7 @@ input {
     height: 0;
     opacity: 1;
   }
+
   100% {
     top: 0px;
     left: 0px;
