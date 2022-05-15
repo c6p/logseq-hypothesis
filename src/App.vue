@@ -84,13 +84,20 @@ export default {
     },
   },
   async mounted() {
-    logseq.once("ui:visible:changed", ({ visible }) => {
+    logseq.once("ui:visible:changed", async ({ visible }) => {
       visible && (this.visible = true);
       // init
       const s = logseq.settings;
       this.apiToken = s.apiToken;
       this.user = s.user;
-      this.annotations = s.annotations;
+      const fs = logseq.FileStorage;
+      if (await fs.hasItem("annotations")) {
+        this.annotations = JSON.parse(
+          await logseq.FileStorage.getItem("annotations")
+        );
+      }
+      // clear annotations kept in the settings prior to v0.2.3
+      logseq.updateSettings({ annotations: null });
     });
     logseq.on("ui:visible:changed", ({ visible }) => {
       visible && this.$nextTick(() => this.$refs.select.$el.focus());
@@ -129,7 +136,7 @@ export default {
       this.fetching = false;
     },
     async getAnnotations(s) {
-      const a = s.annotations || [];
+      const a = this.annotations || [];
       let annotationMap = new Map(a.map((v) => [v.id, v]));
       // fetch rows
       let updated = a.length ? a[a.length - 1]?.updated : undefined;
@@ -148,8 +155,10 @@ export default {
       annotations.forEach((a) =>
         ["user", "user_info", "permissions"].forEach((k) => delete a[k])
       );
-      await logseq.updateSettings({ annotations: null }); // clear settings, BUG? else array size growing
-      await logseq.updateSettings({ annotations }); // clear settings, BUG? else array size growing
+      await logseq.FileStorage.setItem(
+        "annotations",
+        JSON.stringify(annotations)
+      );
       this.annotations = annotations;
     },
     async fetchAnnotations(search_after) {
@@ -167,9 +176,7 @@ export default {
       return res.data.rows;
     },
     getPageNotes(uri) {
-      let annotations = logseq.settings?.annotations?.filter(
-        (x) => x.uri === uri
-      );
+      let annotations = this.annotations?.filter((x) => x.uri === uri);
       const title = annotations[0]?.document.title[0];
       const hids = new Set(annotations.map(({ id }) => id));
       let noteMap = new Map(
