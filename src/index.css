@@ -28,6 +28,7 @@ p {
   --ls-bg-color: rgb(0, 0, 0);
   --ls-color-primary: rgb(255, 255, 255);
   max-width: fit-content;
+  min-width: 40rem;
   border-radius: 0.25rem;
   position: absolute;
   top: 3rem;
@@ -105,7 +106,12 @@ p {
   opacity: 0.8;
 }
 
-#fetch,
+div.buttons {
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: row;
+}
+
 button {
   align-self: flex-end;
   background-color: #0084c7;
@@ -114,15 +120,14 @@ button {
   color: white;
   min-height: 2rem;
   padding: 0.25rem 0.5rem;
+  margin-left: 1rem;
   width: fit-content;
 }
 
-#fetch:hover:not(:disabled),
 button:hover:not(:disabled) {
   background-color: rgb(0, 91, 138);
 }
 
-#fetch:disabled,
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -180,7 +185,7 @@ input {
 }
 
 .accountSetupFields h2 {
-  margin-top: 0
+  margin-top: 0;
 }
 
 .accountSetupFields input {
@@ -193,7 +198,9 @@ input {
   border-style: inset;
 }
 
-.dark input { color: white }
+.dark input {
+  color: white;
+}
 
 .accountSetupFields p {
   margin-bottom: 0.25rem;

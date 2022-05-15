@@ -2,40 +2,16 @@
   <div id="wrapper" @click="onClickOutside">
     <div id="hypothesis" v-if="visible" :class="theme">
       <div id="form">
-        <div class="accountSetupFields">
-          <h2>Account setup</h2>
-          <div class="fieldLabel">
-            <label for="token">API token</label>
-          </div>
-          <input
-            id="token"
-            :value="apiToken"
-            @change="setAPIToken"
-            spellcheck="false"
-          />
-          <div class="fieldLabel">
-            <label for="user">Username</label>
-          </div>
-          <input
-            id="user"
-            placeholder="username@hypothes.is"
-            :value="user"
-            @change="setUser"
-          />
-          <p class="text-small">
-            If you are not using a third party hypothes.is provider, your user
-            account is <code>username@hypothes.is</code>
-          </p>
+        <div class="buttons">
+          <button id="settings" @click="showSettingsUI">
+            <span>⚙️ Settings</span>
+          </button>
+          <button id="fetch" @click="fetchUpdates()" :disabled="fetching">
+            <span v-if="fetching">Fetching updates... </span
+            ><span v-else>🔄 Fetch latest notes</span>
+          </button>
         </div>
-        <button
-          id="fetch"
-          @click="fetchUpdates()"
-          :disabled="fetching || updating"
-        >
-          <span v-if="fetching || updating">Fetching updates... </span
-          ><span v-else>🔄 Fetch latest notes</span>
-        </button>
-        <h2>Create page from hypothesis notes</h2>
+        <h2>Create/Update a page from hypothes.is notes</h2>
         <v-select
           ref="select"
           class="select"
@@ -138,19 +114,12 @@ export default {
     hideMainUI() {
       logseq.hideMainUI();
     },
+    showSettingsUI() {
+      logseq.showSettingsUI();
+    },
     onClickOutside({ target }) {
       const inner = target.closest("#hypothesis");
       !inner && this.hideMainUI();
-    },
-    setAPIToken(e) {
-      const apiToken = e.target.value;
-      logseq.updateSettings({ apiToken });
-      this.apiToken = apiToken || "";
-    },
-    setUser(e) {
-      const user = e.target.value;
-      logseq.updateSettings({ user });
-      this.user = user || "";
     },
     async fetchUpdates() {
       if (this.fetching || new Date() - this.lastFetch < 10000) return;
