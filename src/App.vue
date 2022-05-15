@@ -64,8 +64,6 @@ export default {
       updating: false,
       visible: false,
       left: 0,
-      apiToken: "",
-      user: "",
       annotations: [],
       item: { uri: "", title: "" },
       theme: "dark",
@@ -88,14 +86,9 @@ export default {
     logseq.once("ui:visible:changed", async ({ visible }) => {
       visible && (this.visible = true);
       // init
-      const s = logseq.settings;
-      this.apiToken = s.apiToken;
-      this.user = s.user;
       const fs = logseq.FileStorage;
       if (await fs.hasItem("annotations")) {
-        this.annotations = JSON.parse(
-          await logseq.FileStorage.getItem("annotations")
-        );
+        this.annotations = JSON.parse(await fs.getItem("annotations"));
       }
       // clear annotations kept in the settings prior to v0.2.3
       logseq.updateSettings({ annotations: null });
@@ -163,14 +156,13 @@ export default {
       this.annotations = annotations;
     },
     async fetchAnnotations(search_after) {
+      const { user, apiToken } = logseq.settings;
       const res = await axios.get("https://api.hypothes.is/api/search", {
-        headers: { Authorization: `Bearer ${this.apiToken}` },
+        headers: { Authorization: `Bearer ${apiToken}` },
         params: {
           limit: 200,
           order: "asc",
-          user: `acct:${this.user}${
-            !this.user.includes("@") ? "@hypothes.is" : ""
-          }`,
+          user: `acct:${user}${!user.includes("@") ? "@hypothes.is" : ""}`,
           search_after,
         },
       });

@@ -10,7 +10,7 @@
     "default": "",
     "description": "If you are not using a third party hypothes.is provider, your user account is `username@hypothes.is`",
     "key": "user",
-    "title": "Annotation Format",
+    "title": "User account",
     "type": "string"
   },
   {
