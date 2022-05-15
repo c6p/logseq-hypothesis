@@ -3,12 +3,19 @@
     <div id="hypothesis" v-if="visible" :class="theme">
       <div id="form">
         <div class="buttons">
+          <span v-if="noAccount"
+            >Please, add your
+            <a href="https://hypothes.is/account/developer" target="_blank">
+              API token
+            </a>
+            and user account!
+          </span>
           <button id="settings" @click="showSettingsUI">
             <span>⚙️ Settings</span>
           </button>
           <button id="fetch" @click="fetchUpdates()" :disabled="fetching">
-            <span v-if="fetching">Fetching updates... </span
-            ><span v-else>🔄 Fetch latest notes</span>
+            <span v-if="fetching">Fetching updates... </span>
+            <span v-else>🔄 Fetch latest notes</span>
           </button>
         </div>
         <h2>Create/Update a page from hypothes.is notes</h2>
@@ -67,6 +74,7 @@ export default {
       annotations: [],
       item: { uri: "", title: "" },
       theme: "dark",
+      noAccount: true,
     };
   },
   computed: {
@@ -96,6 +104,11 @@ export default {
     logseq.on("ui:visible:changed", ({ visible }) => {
       visible && this.$nextTick(() => this.$refs.select.$el.focus());
     });
+    logseq.onSettingsChanged((s) => {
+      const { user, apiToken } = s;
+      this.noAccount = !(user && apiToken);
+      console.log(user, apiToken, this.noAccount);
+    });
 
     logseq.App.onThemeModeChanged((s) => {
       this.theme = s.mode;
@@ -123,7 +136,6 @@ export default {
       !inner && this.hideMainUI();
     },
     async fetchUpdates() {
-      if (this.fetching || new Date() - this.lastFetch < 10000) return;
       this.fetching = true;
       await this.getAnnotations(logseq.settings);
       this.lastFetch = +new Date();
