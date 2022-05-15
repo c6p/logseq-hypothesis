@@ -371,8 +371,7 @@ export default {
 
       // upgrade pre-block with page-properties from old format
       const newFormat = "preBlock?" in pagePropBlock;
-      if (!newFormat)
-        await logseq.Editor.updateBlock(pagePropBlock.uuid, "");
+      if (!newFormat) await logseq.Editor.updateBlock(pagePropBlock.uuid, "");
       await Object.entries(pageProperties).map(async ([property, value]) => {
         await logseq.Editor.upsertBlockProperty(
           pagePropBlock.uuid,
@@ -382,7 +381,8 @@ export default {
       });
       // workaround to force preBlock? - see https://github.com/logseq/logseq/issues/5298
       if (!newFormat) {
-        const content = (await logseq.Editor.getBlock(pagePropBlock.uuid)).content;
+        const content = (await logseq.Editor.getBlock(pagePropBlock.uuid))
+          .content;
         await logseq.Editor.updateBlock(pagePropBlock.uuid, "");
         await logseq.Editor.updateBlock(pagePropBlock.uuid, content);
       }
