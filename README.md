@@ -12,10 +12,29 @@ Types of notes
 - 📌 **highlight**
 - 📝
   - **annotation** - if under an highlight
-  - **reply** - if a child
+  - **reply** note - if a child
   - **page note** - if not a child
 - 🗑️ *deleted* note
 
+## Example Configuration
+### Default
+```json
+{
+  "highlightFormat": "📌 {text} {tags}",
+  "annotationFormat": "📝 {text}",
+  "noteFormat": "📝 {text} {tags}",
+  "deletedFormat": "🗑️",
+}
+```
+### Alternative
+See #13 for discussion.
+```json
+{
+  "highlightFormat": "> {text} {tags}",
+  "annotationFormat": "{text}",
+  "noteFormat": "{text} {tags}",
+}
+```
 ### Running the Plugin
 
 - `pnpm install && pnpm run build` in terminal to install dependencies.

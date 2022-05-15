@@ -4,6 +4,7 @@ import vSelect from "vue-select";
 import App from "./App.vue";
 import "./index.css";
 import Font from "./icomoon.woff";
+import settings from "./settingsSchema.json";
 
 function main() {
   const pluginId = logseq.baseInfo.id;
@@ -55,24 +56,7 @@ function main() {
     div[id^="hypothesis__/"] .block-properties:not(.page-properties) { display: none; }
   `);
 
-  logseq.useSettingsSchema([
-    {
-      default: "",
-      description:
-        "Login to your hypothesis.is account, then get your API Token at https://hypothes.is/account/developer",
-      key: "apiToken",
-      title: "API Token",
-      type: "string",
-    },
-    {
-      default: "",
-      description:
-        "If you are not using a third party hypothes.is provider, your user account is `username@hypothes.is`",
-      key: "user",
-      title: "Username",
-      type: "string",
-    },
-  ]);
+  logseq.useSettingsSchema(settings);
 
   logseq.App.registerUIItem("toolbar", {
     key: "hypothesis",

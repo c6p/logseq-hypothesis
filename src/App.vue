@@ -48,6 +48,7 @@
 import axios from "axios";
 import Fuse from "fuse.js";
 import { from as iterFrom } from "core-js-pure/features/iterator";
+import settings from "./settingsSchema.json";
 
 const delay = (t = 100) => new Promise((r) => setTimeout(r, t));
 const flatten = (array) =>
@@ -176,6 +177,11 @@ export default {
       return res.data.rows;
     },
     getPageNotes(uri) {
+      const { highlightFormat, annotationFormat, noteFormat, deletedFormat } =
+        logseq.settings;
+      const defaults = Object.fromEntries(
+        settings.map((s) => [s.key, s.default])
+      );
       let annotations = this.annotations?.filter((x) => x.uri === uri);
       const title = annotations[0]?.document.title[0];
       const hids = new Set(annotations.map(({ id }) => id));
@@ -187,10 +193,19 @@ export default {
             tags = tags.map((t) => `#[[${t}]]`).join(" ");
             let content = "";
             if (exact) {
-              content += `📌 ${exact} ${tags}`;
-              if (text) content += `\n📝 ${text}`;
+              content += (highlightFormat || defaults.highlightFormat)
+                .replace("{text}", exact)
+                .replace("{tags}", tags);
+              if (text)
+                content +=
+                  "\n" +
+                  (annotationFormat || defaults.annotationFormat)
+                    .replace("{text}", text)
+                    .replace("{tags}", tags);
             } else {
-              content += `📝 ${text} ${tags}`;
+              content += (noteFormat || defaults.noteFormat)
+                .replace("{text}", text)
+                .replace("{tags}", tags);
             }
             let properties = { hid: id, updated };
             // add deleted references
@@ -199,7 +214,7 @@ export default {
                 acc.push([
                   r,
                   {
-                    content: "🗑️",
+                    content: deletedFormat || defaults.deletedFormat,
                     properties: { hid: r },
                     parent: references[i - 1],
                   },

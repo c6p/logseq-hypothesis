@@ -1,0 +1,40 @@
+[
+  {
+    "default": "",
+    "description": "Login to your hypothesis.is account, then get your API Token at https://hypothes.is/account/developer",
+    "key": "apiToken",
+    "title": "API Token",
+    "type": "string"
+  },
+  {
+    "default": "",
+    "description": "If you are not using a third party hypothes.is provider, your user account is `username@hypothes.is`",
+    "key": "user",
+    "title": "Annotation Format",
+    "type": "string"
+  },
+  {
+    "default": "📌 {text} {tags}",
+    "key": "highlightFormat",
+    "title": "Highlight Format",
+    "type": "string"
+  },
+  {
+    "default": "📝 {text}",
+    "key": "annotationFormat",
+    "title": "Annotation Format",
+    "type": "string"
+  },
+  {
+    "default": "📝 {text} {tags}",
+    "key": "noteFormat",
+    "title": "Note Format",
+    "type": "string"
+  },
+  {
+    "default": "🗑️",
+    "key": "deletedFormat",
+    "title": "Deleted Content Format",
+    "type": "string"
+  }
+]
