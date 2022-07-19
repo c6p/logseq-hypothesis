@@ -202,7 +202,7 @@ export default {
                 .replace("{tags}", tags);
               if (text)
                 content +=
-                  "\n" +
+                  "\n\n" +
                   (annotationFormat || defaults.annotationFormat)
                     .replace("{text}", text)
                     .replace("{tags}", tags);
