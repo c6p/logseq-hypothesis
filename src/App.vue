@@ -198,16 +198,19 @@ export default {
             let content = "";
             if (exact) {
               content += (highlightFormat || defaults.highlightFormat)
+                .replace("\\n", "\n")
                 .replace("{text}", exact)
                 .replace("{tags}", tags);
               if (text)
                 content +=
                   "\n" +
                   (annotationFormat || defaults.annotationFormat)
+                    .replace("\\n", "\n")
                     .replace("{text}", text)
                     .replace("{tags}", tags);
             } else {
               content += (noteFormat || defaults.noteFormat)
+                .replace("\\n", "\n")
                 .replace("{text}", text)
                 .replace("{tags}", tags);
             }
@@ -218,7 +221,10 @@ export default {
                 acc.push([
                   r,
                   {
-                    content: deletedFormat || defaults.deletedFormat,
+                    content: (deletedFormat || defaults.deletedFormat).replace(
+                      "\\n",
+                      "\n"
+                    ),
                     properties: { hid: r },
                     parent: references[i - 1],
                   },
