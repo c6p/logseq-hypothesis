@@ -36,5 +36,11 @@
     "key": "deletedFormat",
     "title": "Deleted Content Format",
     "type": "string"
+  },
+  {
+    "default": false,
+    "key": "itemsAsLinks",
+    "title": "Make the notes, highlights and annotations links to the hypothes.is page",
+    "type": "boolean"
   }
 ]

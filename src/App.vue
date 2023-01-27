@@ -320,6 +320,8 @@ export default {
       return finds.length ? finds[0]["original-name"] : null;
     },
     async loadPageNotes(page, uri, title, noteMap) {
+      const { itemsAsLinks } =
+        logseq.settings;
       if (!page || !uri) return;
 
       const pageProperties = {
@@ -352,9 +354,15 @@ export default {
 
       for (const n of n_b) {
         const { hid, updated } = n.properties;
-        const content = n.content.trim();
+        let content = n.content.trim();
         const { parent, after } = n;
         const source = blockMap.get(parent ?? after);
+
+        if (itemsAsLinks){
+            //then we want the content to be wrapped in a link that references the annotation on the url that the item originiated from
+            content = `<a href="${uri + "#annotations:" + hid}">${content}</a>`;
+        }
+
         const block = await logseq.Editor.insertBlock(
           source?.uuid ?? page.name,
           content,
