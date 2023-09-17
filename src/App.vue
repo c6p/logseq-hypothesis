@@ -174,7 +174,7 @@ export default {
         params: {
           limit: 200,
           order: "asc",
-          user: `acct:${user}${!user.includes("@") ? "@hypothes.is" : ""}`,
+          user: `acct:${user.trim()}${!user.includes("@") ? "@hypothes.is" : ""}`,
           search_after,
         },
       });
