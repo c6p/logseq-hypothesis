@@ -1,6 +1,7 @@
 > If you like this plugin, you can [buy me a ☕ here](https://www.buymeacoffee.com/c.6p)
     
 # Logseq Hypothes.is Plugin
+
 ![hypo](https://user-images.githubusercontent.com/80478/130854045-ac8c603f-0e07-4531-b195-c15833475052.jpg)
 
 Enter your [API token](https://hypothes.is/account/developer) and user address. If you are not using a third party hypothes.is provider, your user account is `username@hypothes.is`. `Fetch Updates` will fetch new [hypothes.is](https://web.hypothes.is/) notes.
@@ -17,7 +18,9 @@ Types of notes
 - 🗑️ *deleted* note
 
 ## Example Configuration
+
 ### Default
+
 ```json
 {
   "highlightFormat": "📌 {text} {tags}",
@@ -26,8 +29,11 @@ Types of notes
   "deletedFormat": "🗑️",
 }
 ```
+
 ### Alternative
-See #13 for discussion.
+
+See [#13](https://github.com/c6p/logseq-hypothesis/issues/13) for discussion.
+
 ```json
 {
   "highlightFormat": "> {text} {tags}",
@@ -35,6 +41,7 @@ See #13 for discussion.
   "noteFormat": "{text} {tags}",
 }
 ```
+
 ### Running the Plugin
 
 - `pnpm install && pnpm run build` in terminal to install dependencies.
